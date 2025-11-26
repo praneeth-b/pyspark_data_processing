@@ -1,0 +1,21 @@
+paths:
+  raw: "data/raw"
+  bronze: "data/bronze"
+  silver: "data/silver"
+  gold: "data/gold"
+  logs: "logs"
+
+spark:
+  app_name: "Yelp Data Insights"
+  master: "local[*]"
+  memory: "8g"
+
+datasets:
+  - business
+  - review
+  - user
+  - checkin
+  - tip
+
+validation:
+  date_format: "yyyy-MM-dd HH:mm:ss"

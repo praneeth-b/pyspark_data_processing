@@ -15,7 +15,9 @@ class RawDataLoader:
         self.logger = logging.getLogger(__name__)
 
     def load_json_to_bronze(self, dataset_name: str):
-        """Load JSON and save as Parquet in bronze layer"""
+        """Load JSON and save as Parquet in bronze layer
+
+        """
         try:
             json_file = os.path.join(self.raw_path, f"yelp_academic_dataset_{dataset_name}.json")
             bronze_table = os.path.join(self.bronze_path, dataset_name)
