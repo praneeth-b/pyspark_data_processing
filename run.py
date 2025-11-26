@@ -77,9 +77,32 @@ def main():
         business_silver = cleaner.clean_business(business_bronze)
         business_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/business")
         logger.info(f"Cleaned business: {business_silver.count()} rows")
-        business_silver.show(10)
+        # business_silver.show(10)
+
+        review_bronze = spark.read.parquet(f"{config['paths']['bronze']}/review")
+        review_silver = cleaner.clean_review(review_bronze)
+        review_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/review")
+        logger.info(f"Cleaned review: {review_silver.count()} rows")
+        # review_silver.show(10)
+
+        checkin_bronze = spark.read.parquet(f"{config['paths']['bronze']}/checkin")
+        checkin_silver = cleaner.clean_checkin(checkin_bronze)
+        checkin_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/checkin")
+        logger.info(f"Cleaned checkin: {checkin_silver.count()} rows")
+        # checkin_silver.show(10)
 
 
+        user_bronze = spark.read.parquet(f"{config['paths']['bronze']}/user")
+        user_silver = cleaner.clean_user(user_bronze)
+        user_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/user")
+        logger.info(f"Cleaned user: {user_silver.count()} rows")
+        # user_silver.show(10)
+
+        # from pyspark.sql.functions import col
+        tip_bronze = spark.read.parquet(f"{config['paths']['bronze']}/tip")
+        tip_silver = cleaner.clean_tip(tip_bronze)
+        tip_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/tip")
+        logger.info(f"Cleaned tip: {tip_silver.count()} rows")
 
 
 
