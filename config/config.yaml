@@ -6,7 +6,7 @@ paths:
   logs: "logs"
 
 spark:
-  app_name: "Yelp Data Insights"
+  app_name: "YELP DATA PIPELINE"
   master: "local[*]"
   memory: "8g"
 

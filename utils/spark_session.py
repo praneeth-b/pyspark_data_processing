@@ -17,6 +17,7 @@ class SparkSessionManager:
                 .config("spark.sql.adaptive.coalescePartitions.enabled", "true")
                 .config("spark.sql.shuffle.partitions", "64")
                 .config("spark.executor.memory", "4g")
+                .config("spark.sql.autoBroadcastJoinThreshold", 200 * 1024 * 1024)
                 .getOrCreate()
             )
             cls._instance.sparkContext.setLogLevel("WARN")
