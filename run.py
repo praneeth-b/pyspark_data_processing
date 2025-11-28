@@ -7,7 +7,7 @@ from datetime import datetime
 from utils.spark_session import SparkSessionManager
 from src.ingest import RawDataLoader
 from src.clean import DataCleaner
-
+from src.aggregate import DataAggregator
 
 def setup_logging(log_dir: str):
     """ Setup logging configuration
@@ -77,18 +77,21 @@ def main():
         business_silver = cleaner.clean_business(business_bronze)
         business_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/business")
         logger.info(f"Cleaned business: {business_silver.count()} rows")
+        business_silver.cache()
         # business_silver.show(10)
 
         review_bronze = spark.read.parquet(f"{config['paths']['bronze']}/review")
         review_silver = cleaner.clean_review(review_bronze)
         review_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/review")
         logger.info(f"Cleaned review: {review_silver.count()} rows")
+        # review_silver.cache()
         # review_silver.show(10)
 
         checkin_bronze = spark.read.parquet(f"{config['paths']['bronze']}/checkin")
         checkin_silver = cleaner.clean_checkin(checkin_bronze)
         checkin_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/checkin")
         logger.info(f"Cleaned checkin: {checkin_silver.count()} rows")
+        checkin_silver.cache()
         # checkin_silver.show(10)
 
 
@@ -104,6 +107,19 @@ def main():
         tip_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/tip")
         logger.info(f"Cleaned tip: {tip_silver.count()} rows")
 
+        # STAGE 3: GOLD - Aggregate data
+        logger.info("\n[STAGE 3] Creating aggregations in Gold layer...")
+        aggregator = DataAggregator(spark)
+
+        # Weekly stars aggregation
+        weekly_stars = aggregator.aggregate_weekly_stars(review_silver, business_silver)
+        weekly_stars.write.mode("overwrite").parquet(f"{config['paths']['gold']}/weekly_stars")
+        logger.info(f"Weekly stars aggregation: {weekly_stars.count()} rows")
+
+        # Check-ins vs stars aggregation
+        checkins_vs_stars = aggregator.aggregate_checkins_vs_stars(checkin_silver, business_silver)
+        checkins_vs_stars.write.mode("overwrite").parquet(f"{config['paths']['gold']}/checkins_vs_stars")
+        logger.info(f"Check-ins vs stars aggregation: {checkins_vs_stars.count()} rows")
 
 
 

@@ -17,5 +17,3 @@ datasets:
   - checkin
   - tip
 
-validation:
-  date_format: "yyyy-MM-dd HH:mm:ss"

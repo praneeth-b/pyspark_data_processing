@@ -15,7 +15,7 @@ class RawDataLoader:
         self.logger = logging.getLogger(__name__)
 
     def load_json_to_bronze(self, dataset_name: str):
-        """Load JSON and save as Parquet in bronze layer
+        """Load JSON from raw folder and save as Parquet format in bronze layer
 
         """
         try:
@@ -43,8 +43,7 @@ class RawDataLoader:
             raise
 
     def load_all_datasets(self, datasets: list):
-        """Load all the files specified in config file. The datasets(json files) of the Yelp dataset are defined in
-           the config.yaml file
+        """Load all the files specified in the datasets list.
 
         """
         results = {}

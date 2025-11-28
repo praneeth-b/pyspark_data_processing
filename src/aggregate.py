@@ -3,7 +3,6 @@ from pyspark.sql.functions import (
     col, count, avg, sum as spark_sum, date_trunc,
     weekofyear, year, round as spark_round, when
 )
-from pyspark.sql.window import Window
 import logging
 
 
@@ -14,7 +13,8 @@ class DataAggregator:
 
     def aggregate_weekly_stars(self, reviews_df: DataFrame, business_df: DataFrame) -> DataFrame:
         """
-        Aggregate stars per business on a weekly basis
+        Aggregate stars per business on a weekly basis.
+
         """
         self.logger.info("Aggregating weekly stars per business")
 
@@ -60,7 +60,7 @@ class DataAggregator:
             self, checkin_df: DataFrame, business_df: DataFrame) -> DataFrame:
         """
         Aggregate checkins per business compared to overall star rating
-        todo: add more
+
         """
         self.logger.info("Aggregating check-ins vs star ratings")
 
@@ -95,54 +95,3 @@ class DataAggregator:
 
         return result.orderBy(col("total_checkins").desc())
 
-    def create_business_summary(
-            self,
-            business_df: DataFrame,
-            reviews_df: DataFrame,
-            checkin_df: DataFrame
-    ) -> DataFrame:
-        """
-        Create comprehensive business summary
-        """
-        self.logger.info("Creating business summary")
-
-        # Review statistics
-        review_stats = reviews_df.groupBy("business_id").agg(
-            count("review_id").alias("review_count_calculated"),
-            spark_round(avg("stars"), 2).alias("avg_review_stars"),
-            spark_sum("useful").alias("total_useful"),
-            spark_sum("funny").alias("total_funny"),
-            spark_sum("cool").alias("total_cool")
-        )
-
-        # Checkin statistics
-        checkin_stats = checkin_df.groupBy("business_id").agg(
-            count("checkin_timestamp").alias("total_checkins")
-        )
-
-        # Join all
-        summary = business_df.join(
-            review_stats, "business_id", "left"
-        ).join(
-            checkin_stats, "business_id", "left"
-        ).select(
-            "business_id",
-            "business_name",
-            "city",
-            "state",
-            "latitude",
-            "longitude",
-            "stars",
-            "review_count",
-            "review_count_calculated",
-            "avg_review_stars",
-            when(col("total_checkins").isNull(), 0)
-            .otherwise(col("total_checkins")).alias("total_checkins"),
-            "total_useful",
-            "total_funny",
-            "total_cool",
-            "is_open",
-            "categories"
-        )
-
-        return summary
