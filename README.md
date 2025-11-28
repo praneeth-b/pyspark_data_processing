@@ -141,3 +141,7 @@ Expected output:
 2025-11-28 09:45:55,835 - utils.utilities - INFO - Weekly stars aggregation: 5138585 rows
 ...
 ```
+
+## Cleaning and Aggregation Logic
+The cleaning and aggregation logic is explained in `Description.ipynb` notebook. This is an executable notebook demonstrating
+the individual stages of the pipeline.
