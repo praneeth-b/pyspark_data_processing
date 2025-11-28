@@ -209,5 +209,5 @@ __marimo__/
 
 
 # project specific
-data/
-/logs/
+data/*
+logs/*

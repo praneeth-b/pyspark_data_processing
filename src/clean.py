@@ -36,15 +36,15 @@ class DataCleaner:
             col("categories")
         )
 
-
+        # Remove records with missing critical fields
         filtered_df = column_selected_df.filter(
-            # Remove records with missing critical fields
             col("business_id").isNotNull() &
             col("business_name").isNotNull() &
             col("stars").isNotNull() &
             (col("stars").between(0, 5))  # Valid star range
         )
 
+        # drop duplicate business_ids
         depuplicated_df = filtered_df.dropDuplicates(["business_id"])
 
 
@@ -71,7 +71,7 @@ class DataCleaner:
             col("text").cast("string").alias("review_text")
         )
 
-
+        # Remove records with missing critical fields
         filtered_df = column_selection_df.filter(
             col("review_id").isNotNull() &
             col("user_id").isNotNull() &
@@ -80,7 +80,7 @@ class DataCleaner:
             (col("stars").between(0, 5))
         )
 
-
+        # drop duplicate review_id
         deduplicated_df = filtered_df.dropDuplicates(["review_id"])
 
         return deduplicated_df
@@ -101,7 +101,7 @@ class DataCleaner:
             explode(split(col("date"), ", ")).alias("checkin_time")
         )
 
-
+        # Enrich with checkin timestamp and checkin date columns
         checkin_column_format_df = (
             checkin_explode_df
         .withColumn(
@@ -110,18 +110,19 @@ class DataCleaner:
             "checkin_date", to_date(col("checkin_timestamp")))
         )
 
-
         checkin_selected_df = checkin_column_format_df.select(
             trim(col("business_id")).alias("business_id").cast("string"),
             col("checkin_timestamp"),
             col("checkin_date")
         )
 
+        # Remove records with missing critical fields
         checkin_filtered_df = checkin_selected_df.filter(
             col("business_id").isNotNull() &
             col("checkin_timestamp").isNotNull()
         )
 
+        # remove duplicates
         checkin_deduplicated_df = checkin_filtered_df.dropDuplicates(["business_id", "checkin_timestamp"])
 
         return checkin_deduplicated_df
@@ -147,10 +148,12 @@ class DataCleaner:
             col("average_stars").cast("double")
         )
 
-        user_filtered_df = user_selected_df.filter(     # to add more filters
+        # Remove records with missing critical fields
+        user_filtered_df = user_selected_df.filter(
             col("user_id").isNotNull()
         )
 
+        # remove duplicate user_id
         user_deduplicated_df = user_filtered_df.dropDuplicates(["user_id"])
 
         return user_deduplicated_df
@@ -177,7 +180,5 @@ class DataCleaner:
             col("business_id").isNotNull()&
             col("tip_text").isNotNull()
         )
-
-        # avoiding deduplicate check since tip_text is long and comparison may be compute intensive
 
         return tip_filtered_df

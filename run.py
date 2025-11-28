@@ -1,43 +1,8 @@
-
-
-import os
-import yaml
-import logging
-from datetime import datetime
 from utils.spark_session import SparkSessionManager
 from src.ingest import RawDataLoader
 from src.clean import DataCleaner
 from src.aggregate import DataAggregator
-
-def setup_logging(log_dir: str):
-    """ Setup logging configuration
-        Adding handlers for file handling for writing to .log file and Streaming logs on the console.
-
-    """
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, f"pipeline_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler()
-        ]
-    )
-    return logging.getLogger(__name__)
-
-
-def load_config(config_path: str = "config/config.yaml"):
-    """Read configuration from YAML"""
-    with open(config_path, 'r') as f:
-        return yaml.safe_load(f)
-
-
-def create_directories(config: dict):
-    """Create necessary directories"""
-    for path_key in ['bronze', 'silver', 'gold', 'logs']:
-        os.makedirs(config['paths'][path_key], exist_ok=True)
+from utils.utilities import load_config, setup_logging, create_directories
 
 
 def main():
@@ -64,15 +29,16 @@ def main():
             config['paths']['raw'],
             config['paths']['bronze']
         )
-        # load_results = loader.load_all_datasets(config['datasets'])
-        # logger.info(f"Bronze load complete: {load_results}")
-        # Skipping load for testing.
+        load_results = loader.load_all_datasets(config['datasets'])
+        logger.info(f"Bronze load complete: {load_results}")
 
         # Stage 2: Silver: Clean the raw data based on final aggregation.
         logger.info("\n[STAGE 2] Cleaning data to Silver layer...")
         cleaner = DataCleaner(spark)
 
         # Clean each dataset
+
+        # clean business dataset
         business_bronze = spark.read.parquet(f"{config['paths']['bronze']}/business")
         business_silver = cleaner.clean_business(business_bronze)
         business_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/business")
@@ -80,13 +46,14 @@ def main():
         business_silver.cache()
         # business_silver.show(10)
 
+        # clean review_dataset
         review_bronze = spark.read.parquet(f"{config['paths']['bronze']}/review")
         review_silver = cleaner.clean_review(review_bronze)
         review_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/review")
         logger.info(f"Cleaned review: {review_silver.count()} rows")
-        # review_silver.cache()
         # review_silver.show(10)
 
+        # clean checkin dataset
         checkin_bronze = spark.read.parquet(f"{config['paths']['bronze']}/checkin")
         checkin_silver = cleaner.clean_checkin(checkin_bronze)
         checkin_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/checkin")
@@ -94,14 +61,13 @@ def main():
         checkin_silver.cache()
         # checkin_silver.show(10)
 
-
+        # clean user dataset
         user_bronze = spark.read.parquet(f"{config['paths']['bronze']}/user")
         user_silver = cleaner.clean_user(user_bronze)
         user_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/user")
         logger.info(f"Cleaned user: {user_silver.count()} rows")
         # user_silver.show(10)
 
-        # from pyspark.sql.functions import col
         tip_bronze = spark.read.parquet(f"{config['paths']['bronze']}/tip")
         tip_silver = cleaner.clean_tip(tip_bronze)
         tip_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/tip")
