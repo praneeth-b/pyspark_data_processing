@@ -19,7 +19,9 @@ def main():
         # create a spark session
         spark = SparkSessionManager.get_spark_session(
             app_name=config['spark']['app_name'],
-            memory=config['spark']['memory']
+            driver_memory=config['spark']['driver_memory'],
+            executor_memory=config['spark']['executor_memory'],
+            shuffle_partitions=config['spark']['shuffle_partitions']
         )
 
         # STAGE 1: Bronze - Load raw data

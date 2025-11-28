@@ -8,7 +8,9 @@ paths:
 spark:
   app_name: "YELP DATA PIPELINE"
   master: "local[*]"
-  memory: "8g"
+  driver_memory: "8g"
+  executor_memory: "4g"
+  shuffle_partitions: "64"
 
 datasets:
   - business

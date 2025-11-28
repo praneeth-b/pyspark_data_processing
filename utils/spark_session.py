@@ -6,17 +6,17 @@ class SparkSessionManager:
     _instance = None
 
     @classmethod
-    def get_spark_session(cls, app_name="YelpDataPipeline", memory="4g"):
+    def get_spark_session(cls, app_name="YelpDataPipeline", driver_memory="4g", executor_memory="4g",shuffle_partitions="64"):
         if cls._instance is None:
             cls._instance = (
                 SparkSession.builder
                 .appName(app_name)
                 .master("local[*]")  # running on my local pc
-                .config("spark.driver.memory", memory)
+                .config("spark.driver.memory", driver_memory)
                 .config("spark.sql.adaptive.enabled", "true")
                 .config("spark.sql.adaptive.coalescePartitions.enabled", "true")
-                .config("spark.sql.shuffle.partitions", "64")
-                .config("spark.executor.memory", "4g")
+                .config("spark.sql.shuffle.partitions", shuffle_partitions)
+                .config("spark.executor.memory", executor_memory)
                 .config("spark.sql.autoBroadcastJoinThreshold", 200 * 1024 * 1024)
                 .getOrCreate()
             )
