@@ -1,5 +1,5 @@
 # pyspark_data_processing
-A production-grade data engineering solution for processing Yelp's academic dataset using PySpark and the Medallion Architecture (Bronze->Silver->Gold layers).
+A data engineering solution for processing Yelp's academic dataset using PySpark and the Medallion Architecture (Bronze->Silver->Gold layers).
 
 ## Architecture Design
 
