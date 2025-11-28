@@ -83,6 +83,7 @@ pyspark_data_processing/
 ### Step 1: Clone or unbundle the repository
 
 ```bash
+git clone <project_name>.bundle pyspark_data_processing
 cd pyspark_data_processing
 ```
 
