@@ -1,8 +1,9 @@
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import (
-    col, count, avg, date_trunc,
+    col, count, avg, date_trunc, coalesce, lit,
     weekofyear, year, round as spark_round, when
 )
+from pyspark.sql.types import TimestampType
 import logging
 
 
@@ -38,25 +39,28 @@ class DataAggregator:
             spark_round(avg("cool"), 2).alias("avg_cool")
         )
 
-        # Join with business info
-        result = (weekly_agg.join(
-            business_df.select("business_id", "business_name", "city", "state"),
-            "business_id",
-            "left"
-        ).select(
+        # define defaults to use in coalesce()
+        default_week_number = 0
+        default_year = 9999
+        default_review_week = lit('9999-01-01 00:00:00').cast(TimestampType())
+
+        result = (business_df.join(weekly_agg, "business_id", how= "left"
+                                   ).select(
             "business_id",
             "business_name",
             "city",
             "state",
-            "review_week",
-            "review_year",
-            "review_week_number",
-            "avg_stars_weekly",
-            "review_count_weekly",
-            "avg_useful",
-            "avg_funny",
-            "avg_cool"
+            col("stars").alias("overall_stars"),
+            coalesce('review_week', default_review_week).alias('review_week'),
+            coalesce('review_year', lit(default_year)).alias('review_year'),
+            coalesce('review_week_number', lit(default_week_number)).alias('review_week_number'),
+            coalesce('avg_stars_weekly', lit(0)).alias('avg_stars_weekly'),
+            coalesce('review_count_weekly', lit(0)).alias('review_count_weekly'),
+            coalesce('avg_useful', lit(0)).alias('avg_useful'),
+            coalesce('avg_funny', lit(0)).alias('avg_funny'),
+            coalesce('avg_cool', lit(0)).alias('avg_cool')
         ).orderBy("business_id", "review_year", "review_week_number"))
+
 
         return result
 

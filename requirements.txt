@@ -4,5 +4,4 @@ seaborn
 pandas
 jupyterlab
 pyyaml
-pytest
-python-dotenv
+

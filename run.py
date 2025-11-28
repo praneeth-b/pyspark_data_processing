@@ -42,9 +42,9 @@ def main():
         business_bronze = spark.read.parquet(f"{config['paths']['bronze']}/business")
         business_silver = cleaner.clean_business(business_bronze)
         business_silver.write.mode("overwrite").parquet(f"{config['paths']['silver']}/business")
-        logger.info(f"Cleaned business: {business_silver.count()} rows")
-        business_silver.cache()
-        # business_silver.show(10)
+        business_silver.cache()  # caching business_silver since it is used multiple times in gold layer.
+        logger.info(f"Cleaned business: {business_silver.count()} rows")  # also materialize cache()
+
 
         # clean review_dataset
         review_bronze = spark.read.parquet(f"{config['paths']['bronze']}/review")
@@ -79,14 +79,14 @@ def main():
 
         # Weekly stars aggregation
         weekly_stars = aggregator.aggregate_weekly_stars(review_silver, business_silver)
-        weekly_stars.write.mode("overwrite").parquet(f"{config['paths']['gold']}/weekly_stars")
+        # partition by 'review_week' column before write for efficient querying later.
+        weekly_stars.write.partitionBy("review_week").mode("overwrite").parquet(f"{config['paths']['gold']}/weekly_stars")
         logger.info(f"Weekly stars aggregation: {weekly_stars.count()} rows")
 
         # Check-ins vs stars aggregation
         checkins_vs_stars = aggregator.aggregate_checkins_vs_stars(checkin_silver, business_silver)
         checkins_vs_stars.write.mode("overwrite").parquet(f"{config['paths']['gold']}/checkins_vs_stars")
         logger.info(f"Check-ins vs stars aggregation: {checkins_vs_stars.count()} rows")
-
 
 
     except Exception as e:
